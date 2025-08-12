@@ -33,27 +33,19 @@ export default function HomePage() {
     try {
       console.log('Submitting request:', request)
       
-      const response = await fetch('/api/midjourney/imagine', {
+      const response = await fetch('/api/submit-task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
       })
 
       const data = await response.json()
-      console.log('Response from imagine API:', data)
+      console.log('Response from submit-task API:', data)
       setDebugInfo(JSON.stringify(data, null, 2))
       
-      if (data.success && data.taskId) {
-        const newTask: MidjourneyTask = {
-          id: data.taskId,
-          prompt,
-          status: 'PENDING',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-        
-        console.log('Adding task to local state:', newTask)
-        setTasks(prev => [newTask, ...prev])
+      if (data.success && data.task) {
+        console.log('Adding task to local state:', data.task)
+        setTasks(prev => [data.task, ...prev])
         setPrompt('')
       } else {
         alert('提交失败: ' + data.message)
@@ -83,7 +75,7 @@ export default function HomePage() {
     try {
       console.log('Checking status for tasks:', pendingTasks.map(t => t.id))
       
-      const response = await fetch('/api/task/status', {
+      const response = await fetch('/api/check-task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskIds: pendingTasks.map(t => t.id) })
