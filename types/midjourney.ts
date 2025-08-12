@@ -27,6 +27,8 @@ export interface MidjourneyResponse {
 export interface TaskResult {
   id: string;
   status: string;
+  prompt?: string;
+  promptEn?: string;
   imageUrl?: string;
   image_url?: string;
   url?: string;
@@ -36,5 +38,6 @@ export interface TaskResult {
   failReason?: string;
   reason?: string;
   error?: string;
+  submitTime?: number;
   attachments?: Array<{ url: string }>;
 }
