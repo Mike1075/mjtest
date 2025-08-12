@@ -173,6 +173,16 @@ export default function HomePage() {
     }
   }
 
+  const debugTasks = async () => {
+    try {
+      const response = await fetch('/api/debug')
+      const data = await response.json()
+      setDebugInfo(JSON.stringify(data, null, 2))
+    } catch (error) {
+      setDebugInfo(`调试失败: ${error}`)
+    }
+  }
+
   return (
     <div className="container">
       <h1 style={{ 
@@ -291,7 +301,7 @@ export default function HomePage() {
             </button>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
@@ -306,12 +316,22 @@ export default function HomePage() {
             >
               测试Fetch接口
             </button>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
               onClick={addTestTask}
             >
               添加测试任务
+            </button>
+            <button 
+              type="button"
+              className="btn btn-primary"
+              onClick={debugTasks}
+            >
+              查看所有任务
             </button>
           </div>
         </form>
