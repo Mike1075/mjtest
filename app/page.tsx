@@ -126,6 +126,30 @@ export default function HomePage() {
     }
   }
 
+  const addTestTask = async () => {
+    try {
+      const response = await fetch('/api/add-test-task', { method: 'POST' })
+      const data = await response.json()
+      
+      if (data.success) {
+        // 添加测试任务到本地状态
+        const newTask: MidjourneyTask = {
+          id: data.taskId,
+          prompt: 'a red apple, simple, clean background',
+          status: 'PENDING',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+        setTasks(prev => [newTask, ...prev])
+        setDebugInfo('测试任务已添加，请点击"手动刷新状态"查看结果')
+      } else {
+        setDebugInfo(JSON.stringify(data, null, 2))
+      }
+    } catch (error) {
+      setDebugInfo(`添加测试任务失败: ${error}`)
+    }
+  }
+
   return (
     <div className="container">
       <h1 style={{ 
@@ -244,7 +268,7 @@ export default function HomePage() {
             </button>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
@@ -258,6 +282,13 @@ export default function HomePage() {
               onClick={testFetch}
             >
               测试Fetch接口
+            </button>
+            <button 
+              type="button"
+              className="btn btn-primary"
+              onClick={addTestTask}
+            >
+              添加测试任务
             </button>
           </div>
         </form>
