@@ -6,7 +6,7 @@ const API_KEY = 'uhak4zo7vnxk63rxczd0qlah77r62uxc'
 export const midjourneyClient = axios.create({
   baseURL: MIDJOURNEY_API_URL,
   headers: {
-    'Authorization': API_KEY,
+    'mj-api-secret': API_KEY,
     'Content-Type': 'application/json'
   }
 })
