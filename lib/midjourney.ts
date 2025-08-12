@@ -60,9 +60,11 @@ export async function submitImagineTask(request: ImagineRequest): Promise<Imagin
       fullPrompt += ` --s ${request.stylize}`
     }
 
-    const response = await midjourneyClient.post('/submit/imagine', {
+    const response = await midjourneyClient.post('/mj/submit/imagine', {
       prompt: fullPrompt,
-      mode: request.mode || 'fast'
+      notifyHook: process.env.VERCEL_URL ? 
+        `https://${process.env.VERCEL_URL}/api/webhook` : 
+        'https://mjtest.vercel.app/api/webhook'
     })
 
     return response.data
@@ -76,7 +78,7 @@ export async function submitImagineTask(request: ImagineRequest): Promise<Imagin
 
 export async function fetchTask(taskId: string): Promise<TaskResponse> {
   try {
-    const response = await midjourneyClient.get(`/task/${taskId}/fetch`)
+    const response = await midjourneyClient.get(`/mj/task/${taskId}/fetch`)
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error)) {
