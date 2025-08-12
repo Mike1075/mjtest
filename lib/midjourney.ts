@@ -77,7 +77,7 @@ export async function submitImagineTask(request: ImagineRequest): Promise<Imagin
   }
 }
 
-export async function fetchTask(taskId: string): Promise<TaskResponse> {
+export async function fetchTask(taskId: string): Promise<TaskResult> {
   try {
     const response = await midjourneyClient.get(`/mj/task/${taskId}/fetch`)
     return response.data
