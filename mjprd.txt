@@ -1,0 +1,13 @@
+https://github.com/trueai-org/midjourney-proxy/tree/main
+以上是这个通过网页访问midjourney绘图功能的项目在github上的链接。
+
+https://mj.superdafee.uk/swagger/index.html
+这是接口说明
+
+看是先理解一下还是怎么着，有些技术要求，大致流程是需要先调用Submit里面的imagine接口创建绘图任务，会返回创建状态和任务id，然后服务端会向notifyHook地址（自己设置的自己的业务的接口）推送任务进度，可以通过redis或其他中间件缓存和更新任务状态并向前端传递，前端的话轮询后端接口渲染任务进度，然后任务完成后，通过Task里面的fetch接口通过任务id获取任务结果，拿到图片url，我已经对接阿里云oss了，拿到的会是阿里云的oss地址，国内可以直接用。
+
+接口请求头需要添加秘钥
+Authorization: uhak4zo7vnxk63rxczd0qlah77r62uxc
+
+我自己的github仓库链接是：https://github.com/Mike1075/mjtest.git
+开发完代码直接推送到这个仓库里面。
