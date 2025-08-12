@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { TaskResult } from '@/types/midjourney'
 
 const MIDJOURNEY_API_URL = 'https://mj.superdafee.uk'
 const API_KEY = 'uhak4zo7vnxk63rxczd0qlah77r62uxc'
@@ -29,13 +30,7 @@ export interface ImagineResponse {
 export interface TaskResponse {
   code: number
   description: string
-  result?: {
-    id: string
-    status: string
-    imageUrl?: string
-    progress?: number
-    failReason?: string
-  }
+  result?: TaskResult
 }
 
 export async function submitImagineTask(request: ImagineRequest): Promise<ImagineResponse> {

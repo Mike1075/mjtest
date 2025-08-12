@@ -23,3 +23,18 @@ export interface MidjourneyResponse {
   description: string;
   result?: string; // task id
 }
+
+export interface TaskResult {
+  id: string;
+  status: string;
+  imageUrl?: string;
+  image_url?: string;
+  url?: string;
+  thumbnailUrl?: string;
+  progress?: string | number; // 可能是 "100%" 或 100
+  percentage?: number;
+  failReason?: string;
+  reason?: string;
+  error?: string;
+  attachments?: Array<{ url: string }>;
+}

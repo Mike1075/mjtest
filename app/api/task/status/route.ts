@@ -32,18 +32,26 @@ export async function POST(request: NextRequest) {
 
             console.log(`Task ${taskId} status from API:`, result.status)
 
+            // 解析进度值（可能是 "100%" 字符串或数字）
+            const parseProgress = (prog: string | number | undefined): number => {
+              if (typeof prog === 'string') {
+                return parseInt(prog.replace('%', '')) || 0
+              }
+              return prog || 0
+            }
+
             switch (result.status) {
               case 'SUBMITTED':
               case 'IN_PROGRESS':
               case 'PROCESSING':
                 status = 'IN_PROGRESS'
-                progress = result.progress || result.percentage || 0
+                progress = parseProgress(result.progress) || result.percentage || 0
                 break
               case 'SUCCESS':
               case 'FINISHED':
                 status = 'SUCCESS'
                 // 尝试多个可能的图像URL字段
-                imageUrl = result.imageUrl || result.image_url || result.url || result.attachments?.[0]?.url
+                imageUrl = result.imageUrl || result.image_url || result.url || result.thumbnailUrl || result.attachments?.[0]?.url
                 progress = 100
                 break
               case 'FAILURE':
