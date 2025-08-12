@@ -60,11 +60,17 @@ export async function submitImagineTask(request: ImagineRequest): Promise<Imagin
       fullPrompt += ` --s ${request.stylize}`
     }
 
+    const notifyHook = process.env.VERCEL_URL ? 
+      `https://${process.env.VERCEL_URL}/api/webhook` : 
+      'https://mjtest.vercel.app/api/webhook'
+    
+    console.log('Submitting imagine task:', { prompt: fullPrompt, notifyHook })
+    
     const response = await midjourneyClient.post('/mj/submit/imagine', {
       prompt: fullPrompt,
-      notifyHook: process.env.VERCEL_URL ? 
-        `https://${process.env.VERCEL_URL}/api/webhook` : 
-        'https://mjtest.vercel.app/api/webhook'
+      notifyHook: notifyHook,
+      state: '',
+      base64Array: []
     })
 
     return response.data

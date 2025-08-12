@@ -106,6 +106,16 @@ export default function HomePage() {
     }
   }
 
+  const testImagine = async () => {
+    try {
+      const response = await fetch('/api/test-imagine', { method: 'POST' })
+      const data = await response.json()
+      setDebugInfo(JSON.stringify(data, null, 2))
+    } catch (error) {
+      setDebugInfo(`Imagine测试失败: ${error}`)
+    }
+  }
+
   return (
     <div className="container">
       <h1 style={{ 
@@ -207,12 +217,11 @@ export default function HomePage() {
             {isLoading ? '提交中...' : '生成图像'}
           </button>
           
-          <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
               onClick={fetchTaskStatus}
-              style={{ flex: 1 }}
             >
               手动刷新状态
             </button>
@@ -220,9 +229,15 @@ export default function HomePage() {
               type="button"
               className="btn btn-primary"
               onClick={testAPI}
-              style={{ flex: 1 }}
             >
               测试API连接
+            </button>
+            <button 
+              type="button"
+              className="btn btn-primary"
+              onClick={testImagine}
+            >
+              测试Imagine接口
             </button>
           </div>
         </form>
