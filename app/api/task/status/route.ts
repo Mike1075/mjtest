@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
               default:
                 // 保持原状态，但记录未知状态
                 console.log(`Unknown status for task ${taskId}:`, result.status, 'Full result:', result)
+                break
             }
 
             task = TaskStorage.updateTask(taskId, {
@@ -75,9 +76,10 @@ export async function POST(request: NextRequest) {
             console.error(`Error fetching task ${taskId}:`, error)
           }
         }
-      
-      if (task) {
-        tasks.push(task)
+        
+        if (task) {
+          tasks.push(task)
+        }
       }
     }
 
