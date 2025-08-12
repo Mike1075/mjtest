@@ -64,7 +64,13 @@ export default function HomePage() {
       task.status === 'PENDING' || task.status === 'IN_PROGRESS'
     )
 
-    if (pendingTasks.length === 0) return
+    console.log('All tasks:', tasks)
+    console.log('Pending tasks:', pendingTasks)
+
+    if (pendingTasks.length === 0) {
+      setDebugInfo('没有待处理的任务需要刷新')
+      return
+    }
 
     try {
       console.log('Checking status for tasks:', pendingTasks.map(t => t.id))
@@ -75,12 +81,20 @@ export default function HomePage() {
         body: JSON.stringify({ taskIds: pendingTasks.map(t => t.id) })
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
       const data = await response.json()
       console.log('Task status response:', data)
+      setDebugInfo(JSON.stringify(data, null, 2))
       
       if (data.success && data.tasks) {
         setTasks(prev => prev.map(task => {
           const updatedTask = data.tasks.find((t: MidjourneyTask) => t.id === task.id)
+          if (updatedTask) {
+            console.log(`Updating task ${task.id}:`, updatedTask)
+          }
           return updatedTask || task
         }))
       } else {
@@ -88,11 +102,20 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error('获取任务状态失败:', error)
+      setDebugInfo(`获取任务状态失败: ${error}`)
     }
   }
 
   useEffect(() => {
-    const interval = setInterval(fetchTaskStatus, 3000)
+    const interval = setInterval(() => {
+      const pendingTasks = tasks.filter(task => 
+        task.status === 'PENDING' || task.status === 'IN_PROGRESS'
+      )
+      if (pendingTasks.length > 0) {
+        console.log('Auto-refreshing tasks...')
+        fetchTaskStatus()
+      }
+    }, 3000)
     return () => clearInterval(interval)
   }, [tasks])
 
