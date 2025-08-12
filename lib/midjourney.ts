@@ -55,9 +55,8 @@ export async function submitImagineTask(request: ImagineRequest): Promise<Imagin
       fullPrompt += ` --s ${request.stylize}`
     }
 
-    const notifyHook = process.env.VERCEL_URL ? 
-      `https://${process.env.VERCEL_URL}/api/webhook` : 
-      'https://mjtest.vercel.app/api/webhook'
+    // 使用固定的域名而不是动态的VERCEL_URL，避免webhook回调问题
+    const notifyHook = 'https://mjtest.vercel.app/api/webhook'
     
     console.log('Submitting imagine task:', { prompt: fullPrompt, notifyHook })
     

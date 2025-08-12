@@ -112,10 +112,10 @@ export default function HomePage() {
         task.status === 'PENDING' || task.status === 'IN_PROGRESS'
       )
       if (pendingTasks.length > 0) {
-        console.log('Auto-refreshing tasks...')
+        console.log('Auto-refreshing tasks...', pendingTasks.map(t => `${t.id}:${t.status}`))
         fetchTaskStatus()
       }
-    }, 3000)
+    }, 2000) // 更频繁的轮询：2秒而不是3秒
     return () => clearInterval(interval)
   }, [tasks])
 
