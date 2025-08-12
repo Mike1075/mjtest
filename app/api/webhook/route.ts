@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    console.log('Webhook received:', body)
+    console.log('Webhook received:', JSON.stringify(body, null, 2))
 
     if (!body.id) {
       return NextResponse.json(
@@ -31,19 +31,24 @@ export async function POST(request: NextRequest) {
     switch (body.status) {
       case 'SUBMITTED':
       case 'IN_PROGRESS':
+      case 'PROCESSING':
         status = 'IN_PROGRESS'
-        progress = body.progress || 0
+        progress = body.progress || body.percentage || 0
         break
       case 'SUCCESS':
+      case 'FINISHED':
         status = 'SUCCESS'
-        imageUrl = body.imageUrl
+        // 尝试多个可能的图像URL字段
+        imageUrl = body.imageUrl || body.image_url || body.url || body.result?.imageUrl
         progress = 100
         break
       case 'FAILURE':
+      case 'FAILED':
         status = 'FAILURE'
-        failReason = body.failReason || '生成失败'
+        failReason = body.failReason || body.reason || body.error || '生成失败'
         break
       default:
+        console.log('Unknown webhook status:', body.status)
         status = 'PENDING'
     }
 

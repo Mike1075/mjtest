@@ -37,22 +37,23 @@ export async function POST(request: NextRequest) {
               case 'IN_PROGRESS':
               case 'PROCESSING':
                 status = 'IN_PROGRESS'
-                progress = result.progress || 0
+                progress = result.progress || result.percentage || 0
                 break
               case 'SUCCESS':
               case 'FINISHED':
                 status = 'SUCCESS'
-                imageUrl = result.imageUrl
+                // 尝试多个可能的图像URL字段
+                imageUrl = result.imageUrl || result.image_url || result.url || result.attachments?.[0]?.url
                 progress = 100
                 break
               case 'FAILURE':
               case 'FAILED':
                 status = 'FAILURE'
-                failReason = result.failReason || '生成失败'
+                failReason = result.failReason || result.reason || result.error || '生成失败'
                 break
               default:
                 // 保持原状态，但记录未知状态
-                console.log(`Unknown status for task ${taskId}:`, result.status)
+                console.log(`Unknown status for task ${taskId}:`, result.status, 'Full result:', result)
             }
 
             task = TaskStorage.updateTask(taskId, {
