@@ -183,6 +183,29 @@ export default function HomePage() {
     }
   }
 
+  const refreshImage = async (taskId: string) => {
+    try {
+      const response = await fetch('/api/refresh-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success && data.task) {
+        setTasks(prev => prev.map(task => 
+          task.id === taskId ? data.task : task
+        ))
+        setDebugInfo('图像URL已刷新')
+      } else {
+        setDebugInfo(`刷新失败: ${data.message}`)
+      }
+    } catch (error) {
+      setDebugInfo(`刷新图像失败: ${error}`)
+    }
+  }
+
   return (
     <div className="container">
       <h1 style={{ 
@@ -374,6 +397,15 @@ export default function HomePage() {
                     src={task.imageUrl} 
                     alt={task.prompt}
                     className="task-image"
+                    onError={(e) => {
+                      console.log('Image load failed, will retry on next refresh')
+                      // 当图像加载失败时，将任务状态改回IN_PROGRESS以触发重新获取
+                      if (task.status === 'SUCCESS') {
+                        setTasks(prev => prev.map(t => 
+                          t.id === task.id ? { ...t, status: 'IN_PROGRESS' as const } : t
+                        ))
+                      }
+                    }}
                   />
                 )}
 
@@ -381,6 +413,24 @@ export default function HomePage() {
                   <p style={{ color: '#dc2626', fontSize: '14px', marginTop: '8px' }}>
                     失败原因: {task.failReason}
                   </p>
+                )}
+
+                {task.status === 'SUCCESS' && (
+                  <button 
+                    onClick={() => refreshImage(task.id)}
+                    style={{
+                      marginTop: '12px',
+                      padding: '6px 12px',
+                      background: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    刷新图像
+                  </button>
                 )}
               </div>
             ))}

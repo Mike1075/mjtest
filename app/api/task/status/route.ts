@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
       console.log(`Processing task ${taskId}, current status: ${task?.status}`)
       
       if (task) {
-        // 对于所有任务都尝试获取最新状态，不只是PENDING/IN_PROGRESS
-        if (task.status === 'PENDING' || task.status === 'IN_PROGRESS') {
+        // 对于所有任务都尝试获取最新状态，包括SUCCESS（用于刷新过期的图像URL）
+        if (task.status === 'PENDING' || task.status === 'IN_PROGRESS' || task.status === 'SUCCESS') {
           try {
             const result = await fetchTask(taskId)
             console.log(`Fetching task ${taskId}:`, result)
