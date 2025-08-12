@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { MidjourneyRequest, MidjourneyTask } from '@/types/midjourney'
+import SmartImage from '@/components/SmartImage'
 
 export default function HomePage() {
   const [prompt, setPrompt] = useState('')
@@ -400,12 +401,13 @@ export default function HomePage() {
                 )}
 
                 {task.imageUrl && (
-                  <img 
-                    src={task.imageUrl} 
+                  <SmartImage
+                    taskId={task.id}
+                    imageUrl={task.imageUrl}
                     alt={task.prompt}
                     className="task-image"
-                    onError={(e) => {
-                      console.log('Image load failed, will retry on next refresh')
+                    onError={() => {
+                      console.log('Smart image load failed, will retry on next refresh')
                       // 当图像加载失败时，将任务状态改回IN_PROGRESS以触发重新获取
                       if (task.status === 'SUCCESS') {
                         setTasks(prev => prev.map(t => 
