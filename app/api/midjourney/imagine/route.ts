@@ -23,9 +23,13 @@ export async function POST(request: NextRequest) {
       stylize: body.stylize
     })
 
+    console.log('Midjourney API response:', response)
+    
     if (response.code === 1 && response.result) {
       const taskId = response.result
-      TaskStorage.createTask(taskId, body.prompt)
+      const createdTask = TaskStorage.createTask(taskId, body.prompt)
+      
+      console.log('Task created in storage:', createdTask)
       
       return NextResponse.json({
         success: true,

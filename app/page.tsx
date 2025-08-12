@@ -30,6 +30,8 @@ export default function HomePage() {
     }
 
     try {
+      console.log('Submitting request:', request)
+      
       const response = await fetch('/api/midjourney/imagine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -37,6 +39,8 @@ export default function HomePage() {
       })
 
       const data = await response.json()
+      console.log('Response from imagine API:', data)
+      setDebugInfo(JSON.stringify(data, null, 2))
       
       if (data.success && data.taskId) {
         const newTask: MidjourneyTask = {
@@ -47,12 +51,15 @@ export default function HomePage() {
           updatedAt: new Date().toISOString()
         }
         
+        console.log('Adding task to local state:', newTask)
         setTasks(prev => [newTask, ...prev])
         setPrompt('')
       } else {
         alert('提交失败: ' + data.message)
       }
     } catch (error) {
+      console.error('Submit error:', error)
+      setDebugInfo(`提交失败: ${error}`)
       alert('提交失败: ' + (error as Error).message)
     }
 
