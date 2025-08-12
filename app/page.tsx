@@ -12,6 +12,7 @@ export default function HomePage() {
   const [stylize, setStylize] = useState(100)
   const [isLoading, setIsLoading] = useState(false)
   const [tasks, setTasks] = useState<MidjourneyTask[]>([])
+  const [debugInfo, setDebugInfo] = useState<string>('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,6 +67,8 @@ export default function HomePage() {
     if (pendingTasks.length === 0) return
 
     try {
+      console.log('Checking status for tasks:', pendingTasks.map(t => t.id))
+      
       const response = await fetch('/api/task/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,12 +76,15 @@ export default function HomePage() {
       })
 
       const data = await response.json()
+      console.log('Task status response:', data)
       
       if (data.success && data.tasks) {
         setTasks(prev => prev.map(task => {
           const updatedTask = data.tasks.find((t: MidjourneyTask) => t.id === task.id)
           return updatedTask || task
         }))
+      } else {
+        console.error('Task status check failed:', data)
       }
     } catch (error) {
       console.error('获取任务状态失败:', error)
@@ -89,6 +95,16 @@ export default function HomePage() {
     const interval = setInterval(fetchTaskStatus, 3000)
     return () => clearInterval(interval)
   }, [tasks])
+
+  const testAPI = async () => {
+    try {
+      const response = await fetch('/api/test')
+      const data = await response.json()
+      setDebugInfo(JSON.stringify(data, null, 2))
+    } catch (error) {
+      setDebugInfo(`API测试失败: ${error}`)
+    }
+  }
 
   return (
     <div className="container">
@@ -186,10 +202,29 @@ export default function HomePage() {
             type="submit" 
             className="btn btn-primary" 
             disabled={isLoading || !prompt.trim()}
-            style={{ width: '100%' }}
+            style={{ width: '100%', marginBottom: '16px' }}
           >
             {isLoading ? '提交中...' : '生成图像'}
           </button>
+          
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <button 
+              type="button"
+              className="btn btn-primary"
+              onClick={fetchTaskStatus}
+              style={{ flex: 1 }}
+            >
+              手动刷新状态
+            </button>
+            <button 
+              type="button"
+              className="btn btn-primary"
+              onClick={testAPI}
+              style={{ flex: 1 }}
+            >
+              测试API连接
+            </button>
+          </div>
         </form>
       </div>
 
@@ -241,6 +276,43 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {debugInfo && (
+        <div style={{ 
+          background: 'white', 
+          borderRadius: '12px', 
+          padding: '20px', 
+          marginTop: '32px',
+          maxHeight: '400px',
+          overflow: 'auto'
+        }}>
+          <h3 style={{ marginBottom: '16px' }}>调试信息</h3>
+          <pre style={{ 
+            fontSize: '12px', 
+            background: '#f3f4f6', 
+            padding: '12px', 
+            borderRadius: '6px',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all'
+          }}>
+            {debugInfo}
+          </pre>
+          <button 
+            onClick={() => setDebugInfo('')}
+            style={{
+              marginTop: '12px',
+              padding: '8px 16px',
+              background: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            清除调试信息
+          </button>
         </div>
       )}
     </div>

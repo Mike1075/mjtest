@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
       if (task && (task.status === 'PENDING' || task.status === 'IN_PROGRESS')) {
         try {
           const response = await fetchTask(taskId)
+          console.log(`Fetching task ${taskId}:`, response)
           
           if (response.code === 1 && response.result) {
             const result = response.result
@@ -29,21 +30,29 @@ export async function POST(request: NextRequest) {
             let imageUrl: string | undefined
             let failReason: string | undefined
 
+            console.log(`Task ${taskId} status from API:`, result.status)
+
             switch (result.status) {
               case 'SUBMITTED':
               case 'IN_PROGRESS':
+              case 'PROCESSING':
                 status = 'IN_PROGRESS'
                 progress = result.progress || 0
                 break
               case 'SUCCESS':
+              case 'FINISHED':
                 status = 'SUCCESS'
                 imageUrl = result.imageUrl
                 progress = 100
                 break
               case 'FAILURE':
+              case 'FAILED':
                 status = 'FAILURE'
                 failReason = result.failReason || '生成失败'
                 break
+              default:
+                // 保持原状态，但记录未知状态
+                console.log(`Unknown status for task ${taskId}:`, result.status)
             }
 
             task = TaskStorage.updateTask(taskId, {
@@ -52,6 +61,8 @@ export async function POST(request: NextRequest) {
               imageUrl,
               failReason
             })
+          } else {
+            console.log(`Failed to fetch task ${taskId}:`, response)
           }
         } catch (error) {
           console.error(`Error fetching task ${taskId}:`, error)
