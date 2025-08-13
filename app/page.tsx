@@ -183,6 +183,16 @@ export default function HomePage() {
     }
   }
 
+  const testWebhookUrl = async () => {
+    try {
+      const response = await fetch('/api/test-webhook-url')
+      const data = await response.json()
+      setDebugInfo(JSON.stringify(data, null, 2))
+    } catch (error) {
+      setDebugInfo(`WebHook测试失败: ${error}`)
+    }
+  }
+
   const refreshImage = async (taskId: string) => {
     try {
       const response = await fetch('/api/refresh-image', {
@@ -341,7 +351,7 @@ export default function HomePage() {
             </button>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
@@ -355,6 +365,13 @@ export default function HomePage() {
               onClick={debugTasks}
             >
               查看所有任务
+            </button>
+            <button 
+              type="button"
+              className="btn btn-primary"
+              onClick={testWebhookUrl}
+            >
+              测试WebHook
             </button>
           </div>
         </form>
