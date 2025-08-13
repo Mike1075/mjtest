@@ -330,7 +330,7 @@ export default function HomePage() {
             {isLoading ? '提交中...' : '生成图像'}
           </button>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
@@ -351,6 +351,14 @@ export default function HomePage() {
               onClick={testAPI}
             >
               测试API连接
+            </button>
+            <button 
+              type="button"
+              className="btn btn-primary"
+              onClick={() => window.open('/docs', '_blank')}
+              style={{ background: '#059669' }}
+            >
+              📚 API文档
             </button>
           </div>
           
