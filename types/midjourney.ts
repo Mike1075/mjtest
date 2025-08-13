@@ -43,6 +43,8 @@ export interface TaskResult {
   reason?: string;
   error?: string;
   submitTime?: number;
+  startTime?: number;
+  finishTime?: number;
   attachments?: Array<{ url: string }>;
   buttons?: Array<any>;
 }
