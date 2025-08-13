@@ -40,4 +40,5 @@ export interface TaskResult {
   error?: string;
   submitTime?: number;
   attachments?: Array<{ url: string }>;
+  buttons?: Array<any>;
 }
