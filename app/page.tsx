@@ -411,9 +411,18 @@ export default function HomePage() {
                      task.status === 'IN_PROGRESS' ? '生成中' :
                      task.status === 'SUCCESS' ? '完成' : '失败'}
                   </span>
-                  <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                    {task.id.substring(0, 8)}...
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                      {task.id.substring(0, 8)}...
+                    </span>
+                    {task.imageUrl && (
+                      <span style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>
+                        {task.imageType === 'grid' ? `${task.imageCount}张图片网格` :
+                         task.imageType === 'upscaled' ? '放大图片' :
+                         task.imageType === 'single' ? '单张图片' : '未知类型'}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 <p style={{ marginBottom: '12px', fontSize: '14px', color: '#374151' }}>
@@ -430,21 +439,50 @@ export default function HomePage() {
                 )}
 
                 {task.imageUrl && (
-                  <ImageViewer
-                    taskId={task.id}
-                    imageUrl={task.imageUrl}
-                    alt={task.prompt}
-                    className="task-image"
-                    onError={() => {
-                      console.log('Image load failed, will retry on next refresh')
-                      // 当图像加载失败时，将任务状态改回IN_PROGRESS以触发重新获取
-                      if (task.status === 'SUCCESS') {
-                        setTasks(prev => prev.map(t => 
-                          t.id === task.id ? { ...t, status: 'IN_PROGRESS' as const } : t
-                        ))
-                      }
-                    }}
-                  />
+                  <>
+                    <ImageViewer
+                      taskId={task.id}
+                      imageUrl={task.imageUrl}
+                      alt={task.prompt}
+                      className="task-image"
+                      onError={() => {
+                        console.log('Image load failed, will retry on next refresh')
+                        // 当图像加载失败时，将任务状态改回IN_PROGRESS以触发重新获取
+                        if (task.status === 'SUCCESS') {
+                          setTasks(prev => prev.map(t => 
+                            t.id === task.id ? { ...t, status: 'IN_PROGRESS' as const } : t
+                          ))
+                        }
+                      }}
+                    />
+                    
+                    {/* 调试信息：显示attachments和buttons */}
+                    {(task.attachments || task.buttons) && (
+                      <details style={{ marginTop: '8px', fontSize: '11px', color: '#6b7280' }}>
+                        <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>调试信息</summary>
+                        <div style={{ marginTop: '4px', padding: '4px', background: '#f9fafb', borderRadius: '4px' }}>
+                          {task.attachments && (
+                            <div>
+                              <strong>Attachments ({task.attachments.length}):</strong>
+                              <ul style={{ margin: '4px 0', paddingLeft: '16px' }}>
+                                {task.attachments.map((att, i) => (
+                                  <li key={i}><a href={att.url} target="_blank" rel="noopener noreferrer">{att.url.substring(0, 50)}...</a></li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {task.buttons && task.buttons.length > 0 && (
+                            <div>
+                              <strong>Buttons ({task.buttons.length}):</strong>
+                              <div style={{ margin: '4px 0' }}>
+                                {JSON.stringify(task.buttons, null, 2)}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    )}
+                  </>
                 )}
 
                 {task.status === 'FAILURE' && task.failReason && (

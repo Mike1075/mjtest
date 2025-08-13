@@ -7,6 +7,10 @@ export interface MidjourneyTask {
   failReason?: string;
   createdAt: string;
   updatedAt: string;
+  attachments?: Array<{ url: string }>;
+  buttons?: Array<any>;
+  imageType?: 'grid' | 'single' | 'upscaled';
+  imageCount?: number;
 }
 
 export interface MidjourneyRequest {

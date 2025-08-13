@@ -14,23 +14,58 @@ interface ImageViewerProps {
 export default function ImageViewer({ taskId, imageUrl, alt, className, onError }: ImageViewerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handleDownload = async () => {
+  const handleDownload = async (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    
     try {
-      const response = await fetch(imageUrl, { mode: 'cors' })
+      console.log('Starting download for:', imageUrl)
+      
+      // 使用代理请求避免CORS问题
+      const response = await fetch('/api/download-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl, taskId })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Download proxy failed')
+      }
+      
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       
       const link = document.createElement('a')
       link.href = url
       link.download = `midjourney-${taskId}.png`
+      link.style.display = 'none'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
+      
+      console.log('Download completed')
     } catch (error) {
       console.error('Download failed:', error)
-      // Fallback: 直接打开图片
-      window.open(imageUrl, '_blank')
+      // Fallback: 尝试直接下载
+      try {
+        const response = await fetch(imageUrl)
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `midjourney-${taskId}.png`
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      } catch (fallbackError) {
+        console.error('Fallback download failed:', fallbackError)
+        // 最后的备选方案：在新标签页打开
+        window.open(imageUrl, '_blank')
+      }
     }
   }
 
@@ -54,7 +89,11 @@ export default function ImageViewer({ taskId, imageUrl, alt, className, onError 
           gap: '4px'
         }}>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setIsModalOpen(true)
+            }}
             style={{
               background: 'rgba(0,0,0,0.7)',
               color: 'white',
@@ -69,7 +108,13 @@ export default function ImageViewer({ taskId, imageUrl, alt, className, onError 
             🔍
           </button>
           <button
-            onClick={handleDownload}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleDownload(e)
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onMouseUp={(e) => e.stopPropagation()}
             style={{
               background: 'rgba(0,0,0,0.7)',
               color: 'white',
@@ -117,7 +162,10 @@ export default function ImageViewer({ taskId, imageUrl, alt, className, onError 
           }}
           onClick={() => setIsModalOpen(false)}
         >
-          <div style={{ position: 'relative', maxWidth: '95vw', maxHeight: '95vh' }}>
+          <div 
+            style={{ position: 'relative', maxWidth: '95vw', maxHeight: '95vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
               src={imageUrl}
               alt={alt}
@@ -126,6 +174,7 @@ export default function ImageViewer({ taskId, imageUrl, alt, className, onError 
                 maxHeight: '100%',
                 objectFit: 'contain'
               }}
+              onClick={(e) => e.stopPropagation()}
             />
             
             {/* 关闭按钮 */}
@@ -150,7 +199,13 @@ export default function ImageViewer({ taskId, imageUrl, alt, className, onError 
             
             {/* 下载按钮 */}
             <button
-              onClick={handleDownload}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                handleDownload(e)
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onMouseUp={(e) => e.stopPropagation()}
               style={{
                 position: 'absolute',
                 bottom: '-40px',
