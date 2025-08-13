@@ -59,26 +59,31 @@ export default function HomePage() {
     setIsLoading(false)
   }
 
-  const fetchTaskStatus = async () => {
-    const pendingTasks = tasks.filter(task => 
+  const fetchTaskStatus = async (forceRefreshAll = false) => {
+    let tasksToCheck = tasks.filter(task => 
       task.status === 'PENDING' || task.status === 'IN_PROGRESS'
     )
 
-    console.log('All tasks:', tasks)
-    console.log('Pending tasks:', pendingTasks)
+    // 如果强制刷新，检查所有任务
+    if (forceRefreshAll) {
+      tasksToCheck = tasks
+    }
 
-    if (pendingTasks.length === 0) {
-      setDebugInfo('没有待处理的任务需要刷新')
+    console.log('All tasks:', tasks)
+    console.log('Tasks to check:', tasksToCheck)
+
+    if (tasksToCheck.length === 0) {
+      setDebugInfo(forceRefreshAll ? '没有任务可以刷新' : '没有待处理的任务需要刷新')
       return
     }
 
     try {
-      console.log('Checking status for tasks:', pendingTasks.map(t => t.id))
+      console.log('Checking status for tasks:', tasksToCheck.map(t => t.id))
       
       const response = await fetch('/api/check-task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskIds: pendingTasks.map(t => t.id) })
+        body: JSON.stringify({ taskIds: tasksToCheck.map(t => t.id) })
       })
 
       if (!response.ok) {
@@ -188,9 +193,17 @@ export default function HomePage() {
       const response = await fetch('/api/test-webhook-url')
       const data = await response.json()
       setDebugInfo(JSON.stringify(data, null, 2))
+      
+      // 测试WebHook后自动刷新任务状态
+      console.log('Auto-refreshing tasks after webhook test...')
+      await fetchTaskStatus()
     } catch (error) {
       setDebugInfo(`WebHook测试失败: ${error}`)
     }
+  }
+
+  const forceRefreshAll = async () => {
+    await fetchTaskStatus(true)
   }
 
   const refreshImage = async (taskId: string) => {
@@ -317,13 +330,20 @@ export default function HomePage() {
             {isLoading ? '提交中...' : '生成图像'}
           </button>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
-              onClick={fetchTaskStatus}
+              onClick={() => fetchTaskStatus()}
             >
-              手动刷新状态
+              刷新进行中任务
+            </button>
+            <button 
+              type="button"
+              className="btn btn-primary"
+              onClick={forceRefreshAll}
+            >
+              强制刷新所有任务
             </button>
             <button 
               type="button"
