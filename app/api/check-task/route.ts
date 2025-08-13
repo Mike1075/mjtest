@@ -38,21 +38,27 @@ export async function POST(request: NextRequest) {
         }
 
         // 分析图片类型和数量
-        const analyzeImageType = (url: string) => {
+        const analyzeImageType = (url: string, buttons?: Array<any>) => {
           if (!url) return { type: 'unknown', count: 0 }
           
-          // Discord CDN URL包含下划线通常表示是4张图片的网格
-          if (url.includes('cdn.discordapp.com') && url.includes('_')) {
-            return { type: 'grid', count: 4 }
+          // 检查buttons来判断图片类型
+          if (buttons && buttons.length > 0) {
+            const hasUpscaleButtons = buttons.some(btn => btn.label && btn.label.startsWith('U'))
+            const hasVariationButtons = buttons.some(btn => btn.label && btn.label.startsWith('V'))
+            
+            // 如果同时有U1-U4和V1-V4按钮，说明是4张图的网格
+            if (hasUpscaleButtons && hasVariationButtons) {
+              return { type: 'grid', count: 4 }
+            }
           }
-          // 包含 'upscale' 或 'U' 通常表示是放大的单张图片
-          else if (url.includes('upscale') || url.match(/U\d/)) {
+          
+          // 包含 'upscale' 或文件名中有'U'表示是放大的单张图片
+          if (url.includes('upscale') || url.match(/[_-]U\d/)) {
             return { type: 'upscaled', count: 1 }
           }
-          // 其他情况视为单张图片
-          else {
-            return { type: 'single', count: 1 }
-          }
+          
+          // 默认情况
+          return { type: 'single', count: 1 }
         }
 
         switch (result.status) {
@@ -77,7 +83,7 @@ export async function POST(request: NextRequest) {
             console.log(`Unknown status for task ${taskId}:`, result.status)
         }
 
-        const imageAnalysis = analyzeImageType(imageUrl || '')
+        const imageAnalysis = analyzeImageType(imageUrl || '', result.buttons)
 
         tasks.push({
           id: taskId,
