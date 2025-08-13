@@ -1,127 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-
 export default function DocsPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    // 检查是否已经认证
-    const auth = sessionStorage.getItem('docs_auth')
-    if (auth === 'authenticated') {
-      setIsAuthenticated(true)
-    }
-  }, [])
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (username === 'helios' && password === 'xljy0818') {
-      setIsAuthenticated(true)
-      sessionStorage.setItem('docs_auth', 'authenticated')
-      setError('')
-    } else {
-      setError('用户名或密码错误')
-    }
-  }
-
-  const handleLogout = () => {
-    setIsAuthenticated(false)
-    sessionStorage.removeItem('docs_auth')
-    setUsername('')
-    setPassword('')
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}>
-        <div style={{
-          background: 'white',
-          padding: '2rem',
-          borderRadius: '12px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-          width: '100%',
-          maxWidth: '400px'
-        }}>
-          <h1 style={{ textAlign: 'center', marginBottom: '2rem', color: '#333' }}>
-            API文档访问
-          </h1>
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#555' }}>
-                用户名
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '1rem'
-                }}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#555' }}>
-                密码
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '1rem'
-                }}
-                required
-              />
-            </div>
-            {error && (
-              <div style={{
-                color: '#dc2626',
-                marginBottom: '1rem',
-                textAlign: 'center',
-                fontSize: '0.9rem'
-              }}>
-                {error}
-              </div>
-            )}
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                background: '#667eea',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                cursor: 'pointer'
-              }}
-            >
-              登录
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -147,7 +26,7 @@ export default function DocsPage() {
         }}>
           <h1 style={{ margin: 0, fontSize: '2rem' }}>Midjourney API 文档</h1>
           <button
-            onClick={handleLogout}
+            onClick={() => window.location.href = '/'}
             style={{
               background: 'rgba(255,255,255,0.2)',
               color: 'white',
@@ -157,7 +36,7 @@ export default function DocsPage() {
               cursor: 'pointer'
             }}
           >
-            退出登录
+            返回首页
           </button>
         </div>
 

@@ -5,6 +5,11 @@ import { MidjourneyRequest, MidjourneyTask } from '@/types/midjourney'
 import ImageViewer from '@/components/ImageViewer'
 
 export default function HomePage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState('')
+
   const [prompt, setPrompt] = useState('')
   const [mode, setMode] = useState<'fast' | 'relax'>('fast')
   const [aspectRatio, setAspectRatio] = useState<'1:1' | '16:9' | '9:16' | '4:3' | '3:4'>('1:1')
@@ -14,6 +19,32 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [tasks, setTasks] = useState<MidjourneyTask[]>([])
   const [debugInfo, setDebugInfo] = useState<string>('')
+
+  useEffect(() => {
+    // 检查是否已经认证
+    const auth = sessionStorage.getItem('app_auth')
+    if (auth === 'authenticated') {
+      setIsAuthenticated(true)
+    }
+  }, [])
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (username === 'helios' && password === 'xljy0818') {
+      setIsAuthenticated(true)
+      sessionStorage.setItem('app_auth', 'authenticated')
+      setAuthError('')
+    } else {
+      setAuthError('用户名或密码错误')
+    }
+  }
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    sessionStorage.removeItem('app_auth')
+    setUsername('')
+    setPassword('')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,21 +90,16 @@ export default function HomePage() {
     setIsLoading(false)
   }
 
-  const fetchTaskStatus = async (forceRefreshAll = false) => {
-    let tasksToCheck = tasks.filter(task => 
+  const fetchTaskStatus = async () => {
+    const tasksToCheck = tasks.filter(task => 
       task.status === 'PENDING' || task.status === 'IN_PROGRESS'
     )
-
-    // 如果强制刷新，检查所有任务
-    if (forceRefreshAll) {
-      tasksToCheck = tasks
-    }
 
     console.log('All tasks:', tasks)
     console.log('Tasks to check:', tasksToCheck)
 
     if (tasksToCheck.length === 0) {
-      setDebugInfo(forceRefreshAll ? '没有任务可以刷新' : '没有待处理的任务需要刷新')
+      setDebugInfo('没有待处理的任务需要刷新')
       return
     }
 
@@ -124,87 +150,6 @@ export default function HomePage() {
     return () => clearInterval(interval)
   }, [tasks])
 
-  const testAPI = async () => {
-    try {
-      const response = await fetch('/api/test')
-      const data = await response.json()
-      setDebugInfo(JSON.stringify(data, null, 2))
-    } catch (error) {
-      setDebugInfo(`API测试失败: ${error}`)
-    }
-  }
-
-  const testImagine = async () => {
-    try {
-      const response = await fetch('/api/test-imagine', { method: 'POST' })
-      const data = await response.json()
-      setDebugInfo(JSON.stringify(data, null, 2))
-    } catch (error) {
-      setDebugInfo(`Imagine测试失败: ${error}`)
-    }
-  }
-
-  const testFetch = async () => {
-    try {
-      const response = await fetch('/api/test-fetch')
-      const data = await response.json()
-      setDebugInfo(JSON.stringify(data, null, 2))
-    } catch (error) {
-      setDebugInfo(`Fetch测试失败: ${error}`)
-    }
-  }
-
-  const addTestTask = async () => {
-    try {
-      const response = await fetch('/api/add-test-task', { method: 'POST' })
-      const data = await response.json()
-      
-      if (data.success) {
-        // 添加测试任务到本地状态
-        const newTask: MidjourneyTask = {
-          id: data.taskId,
-          prompt: 'a red apple, simple, clean background',
-          status: 'PENDING',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-        setTasks(prev => [newTask, ...prev])
-        setDebugInfo('测试任务已添加，请点击"手动刷新状态"查看结果')
-      } else {
-        setDebugInfo(JSON.stringify(data, null, 2))
-      }
-    } catch (error) {
-      setDebugInfo(`添加测试任务失败: ${error}`)
-    }
-  }
-
-  const debugTasks = async () => {
-    try {
-      const response = await fetch('/api/debug')
-      const data = await response.json()
-      setDebugInfo(JSON.stringify(data, null, 2))
-    } catch (error) {
-      setDebugInfo(`调试失败: ${error}`)
-    }
-  }
-
-  const testWebhookUrl = async () => {
-    try {
-      const response = await fetch('/api/test-webhook-url')
-      const data = await response.json()
-      setDebugInfo(JSON.stringify(data, null, 2))
-      
-      // 测试WebHook后自动刷新任务状态
-      console.log('Auto-refreshing tasks after webhook test...')
-      await fetchTaskStatus()
-    } catch (error) {
-      setDebugInfo(`WebHook测试失败: ${error}`)
-    }
-  }
-
-  const forceRefreshAll = async () => {
-    await fetchTaskStatus(true)
-  }
 
   const refreshImage = async (taskId: string) => {
     try {
@@ -229,17 +174,119 @@ export default function HomePage() {
     }
   }
 
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div style={{
+          background: 'white',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          width: '100%',
+          maxWidth: '400px'
+        }}>
+          <h1 style={{ textAlign: 'center', marginBottom: '2rem', color: '#333' }}>
+            Midjourney API 服务
+          </h1>
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#555' }}>
+                用户名
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '1rem'
+                }}
+                required
+              />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#555' }}>
+                密码
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '1rem'
+                }}
+                required
+              />
+            </div>
+            {authError && (
+              <div style={{
+                color: '#dc2626',
+                marginBottom: '1rem',
+                textAlign: 'center',
+                fontSize: '0.9rem'
+              }}>
+                {authError}
+              </div>
+            )}
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                background: '#667eea',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                cursor: 'pointer'
+              }}
+            >
+              登录
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container">
-      <h1 style={{ 
-        textAlign: 'center', 
-        color: 'white', 
-        fontSize: '2.5rem', 
-        marginBottom: '2rem',
-        fontWeight: 'bold'
-      }}>
-        Midjourney 图像生成器
-      </h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h1 style={{ 
+          color: 'white', 
+          fontSize: '2.5rem', 
+          fontWeight: 'bold',
+          margin: 0
+        }}>
+          Midjourney API 服务
+        </h1>
+        <button
+          onClick={handleLogout}
+          style={{
+            background: 'rgba(255,255,255,0.2)',
+            color: 'white',
+            border: '1px solid rgba(255,255,255,0.3)',
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          退出登录
+        </button>
+      </div>
 
       <div className="form-container">
         <form onSubmit={handleSubmit}>
@@ -330,27 +377,13 @@ export default function HomePage() {
             {isLoading ? '提交中...' : '生成图像'}
           </button>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
               onClick={() => fetchTaskStatus()}
             >
-              刷新进行中任务
-            </button>
-            <button 
-              type="button"
-              className="btn btn-primary"
-              onClick={forceRefreshAll}
-            >
-              强制刷新所有任务
-            </button>
-            <button 
-              type="button"
-              className="btn btn-primary"
-              onClick={testAPI}
-            >
-              测试API连接
+              刷新任务状态
             </button>
             <button 
               type="button"
@@ -360,46 +393,13 @@ export default function HomePage() {
             >
               📚 API文档
             </button>
-          </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <button 
               type="button"
               className="btn btn-primary"
-              onClick={testImagine}
+              onClick={() => setDebugInfo('')}
+              style={{ background: '#ef4444' }}
             >
-              测试Imagine接口
-            </button>
-            <button 
-              type="button"
-              className="btn btn-primary"
-              onClick={testFetch}
-            >
-              测试Fetch接口
-            </button>
-          </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-            <button 
-              type="button"
-              className="btn btn-primary"
-              onClick={addTestTask}
-            >
-              添加测试任务
-            </button>
-            <button 
-              type="button"
-              className="btn btn-primary"
-              onClick={debugTasks}
-            >
-              查看所有任务
-            </button>
-            <button 
-              type="button"
-              className="btn btn-primary"
-              onClick={testWebhookUrl}
-            >
-              测试WebHook
+              清除调试信息
             </button>
           </div>
         </form>
@@ -522,6 +522,102 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* API调用示例 */}
+      <div style={{ 
+        background: 'white', 
+        borderRadius: '12px', 
+        padding: '20px', 
+        marginTop: '32px'
+      }}>
+        <h3 style={{ marginBottom: '16px', color: '#1e293b' }}>API调用示例</h3>
+        <p style={{ marginBottom: '16px', color: '#64748b' }}>
+          本页面演示了如何使用我们的API接口。以下是核心调用代码：
+        </p>
+        
+        <div style={{ marginBottom: '20px' }}>
+          <h4 style={{ color: '#374151', marginBottom: '8px' }}>1. 提交生成任务</h4>
+          <pre style={{ 
+            fontSize: '12px', 
+            background: '#1e293b',
+            color: '#e2e8f0',
+            padding: '12px', 
+            borderRadius: '6px',
+            overflow: 'auto'
+          }}>
+{`// 本页面使用的代码
+const response = await fetch('/api/submit-task', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    prompt: "${prompt}",
+    mode: "${mode}",
+    aspectRatio: "${aspectRatio}",
+    model: "${model}",
+    quality: "${quality}",
+    stylize: ${stylize}
+  })
+});
+
+const data = await response.json();
+console.log('任务ID:', data.task.id);`}
+          </pre>
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <h4 style={{ color: '#374151', marginBottom: '8px' }}>2. 查询任务状态</h4>
+          <pre style={{ 
+            fontSize: '12px', 
+            background: '#1e293b',
+            color: '#e2e8f0',
+            padding: '12px', 
+            borderRadius: '6px',
+            overflow: 'auto'
+          }}>
+{`// 轮询查询状态
+const statusResponse = await fetch('/api/check-task', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    taskIds: [taskId] 
+  })
+});
+
+const statusData = await statusResponse.json();
+if (statusData.tasks[0].status === 'SUCCESS') {
+  console.log('图片URL:', statusData.tasks[0].imageUrl);
+}`}
+          </pre>
+        </div>
+
+        <div>
+          <h4 style={{ color: '#374151', marginBottom: '8px' }}>3. 标准化API接口</h4>
+          <pre style={{ 
+            fontSize: '12px', 
+            background: '#1e293b',
+            color: '#e2e8f0',
+            padding: '12px', 
+            borderRadius: '6px',
+            overflow: 'auto'
+          }}>
+{`// 使用标准化API (推荐)
+// 提交任务
+const genResponse = await fetch('/api/v1/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    prompt: "一只可爱的小猫",
+    mode: "fast",
+    aspectRatio: "1:1"
+  })
+});
+
+// 查询状态
+const statusResponse = await fetch(\`/api/v1/status/\${taskId}\`);
+const result = await statusResponse.json();`}
+          </pre>
+        </div>
+      </div>
+
       {debugInfo && (
         <div style={{ 
           background: 'white', 
@@ -531,7 +627,7 @@ export default function HomePage() {
           maxHeight: '400px',
           overflow: 'auto'
         }}>
-          <h3 style={{ marginBottom: '16px' }}>调试信息</h3>
+          <h3 style={{ marginBottom: '16px' }}>实时调试信息</h3>
           <pre style={{ 
             fontSize: '12px', 
             background: '#f3f4f6', 
@@ -542,20 +638,6 @@ export default function HomePage() {
           }}>
             {debugInfo}
           </pre>
-          <button 
-            onClick={() => setDebugInfo('')}
-            style={{
-              marginTop: '12px',
-              padding: '8px 16px',
-              background: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}
-          >
-            清除调试信息
-          </button>
         </div>
       )}
     </div>
