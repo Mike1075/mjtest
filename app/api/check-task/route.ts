@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
       try {
         const result = await fetchTask(taskId)
         console.log(`Task ${taskId} from API:`, result)
+        console.log(`Task ${taskId} - imageUrl:`, result.imageUrl)
+        console.log(`Task ${taskId} - attachments:`, result.attachments)
+        console.log(`Task ${taskId} - buttons:`, result.buttons)
         
         let status: 'PENDING' | 'IN_PROGRESS' | 'SUCCESS' | 'FAILURE' = 'PENDING'
         let progress: number | undefined
